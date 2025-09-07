@@ -37,6 +37,14 @@ body { background-image: radial-gradient(60rem 60rem at 120% -10%, rgba(245,158,
 .btn-gradient:hover { filter: brightness(1.05); box-shadow: 0 14px 32px rgba(245,158,11,.32); }
 .btn-ghost { background: rgba(255,255,255,.9); color:#000; border-radius:.75rem; padding:.75rem 1.25rem; border:1px solid rgba(0,0,0,.08); font-weight:600; }
 .btn-ghost:hover { background: white; }
+/* Hero-specific CTA: alto contraste sobre fondo amarillo */
+.hero-banner .btn-gradient {
+	background: #111 !important;
+	color: #fff !important;
+	border: 2px solid var(--brand-a);
+	box-shadow: 0 12px 28px rgba(0,0,0,.35);
+}
+.hero-banner .btn-gradient:hover { background: #000 !important; box-shadow: 0 16px 36px rgba(0,0,0,.45); }
 /* Glass cards look inside carousels/grids */
 .carousel.track > div { background: linear-gradient(to bottom right, rgba(255,255,255,.92), rgba(255,255,255,.78)); border:1px solid rgba(0,0,0,.06); }
 /* Compensar header sticky al navegar a #productos */
@@ -47,6 +55,13 @@ body { background-image: radial-gradient(60rem 60rem at 120% -10%, rgba(245,158,
 .hero-banner .container { position: relative; }
 .hero-banner::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(40rem 16rem at 80% 20%, rgba(255,255,255,.18), transparent); }
 .hero-banner img { box-shadow: 0 24px 60px rgba(0,0,0,.18); }
+.hero-banner h2, .hero-banner p { text-shadow: 0 1px 2px rgba(0,0,0,.15); }
+
+/* Asegurar foco visible alto contraste en CTA del hero */
+.hero-banner .btn-gradient:focus-visible {
+	outline: none;
+	box-shadow: 0 0 0 4px rgba(255,255,255,.6), 0 0 0 7px rgba(245,158,11,.8), 0 12px 28px rgba(0,0,0,.4);
+}
 
 /* Código visible eliminado: neutralizamos estilos heredados si existiera esa clase */
 .text-sm.text-gray-500 { background: transparent; padding: 0; }

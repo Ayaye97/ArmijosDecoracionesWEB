@@ -21,10 +21,12 @@ function initCarousels() {
   let leftBtn = track.parentElement.querySelector('.carousel-btn.left');
   let rightBtn = track.parentElement.querySelector('.carousel-btn.right');
   const ensureButtons = () => {
+    // No crear botones si está en modo grid
+    if (track.classList.contains('as-grid')) return;
     if (!leftBtn) {
       leftBtn = document.createElement('button');
       leftBtn.type = 'button';
-      leftBtn.className = 'carousel-btn left absolute top-1/2 -translate-y-1/2 left-1 z-10 hidden md:inline-flex items-center justify-center rounded-full w-10 h-10 bg-white border border-gray-200 text-gray-700 shadow hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed';
+  leftBtn.className = 'carousel-btn left absolute top-1/2 -translate-y-1/2 left-1 z-10 hidden md:inline-flex items-center justify-center rounded-full w-10 h-10 bg-white border border-gray-200 text-gray-700 shadow hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed';
       leftBtn.innerHTML = '<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>';
       leftBtn.setAttribute('aria-label', 'Anterior');
       track.parentElement.style.position = 'relative';
@@ -33,7 +35,7 @@ function initCarousels() {
     if (!rightBtn) {
       rightBtn = document.createElement('button');
       rightBtn.type = 'button';
-      rightBtn.className = 'carousel-btn right absolute top-1/2 -translate-y-1/2 right-1 z-10 hidden md:inline-flex items-center justify-center rounded-full w-10 h-10 bg-white border border-gray-200 text-gray-700 shadow hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed';
+  rightBtn.className = 'carousel-btn right absolute top-1/2 -translate-y-1/2 right-1 z-10 hidden md:inline-flex items-center justify-center rounded-full w-10 h-10 bg-white border border-gray-200 text-gray-700 shadow hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed';
       rightBtn.innerHTML = '<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
       rightBtn.setAttribute('aria-label', 'Siguiente');
       track.parentElement.style.position = 'relative';
@@ -41,6 +43,13 @@ function initCarousels() {
     }
   };
   ensureButtons();
+  // Si está en grid al iniciar, aseguramos que no haya botones
+  if (track.classList.contains('as-grid')) {
+    leftBtn?.remove();
+    rightBtn?.remove();
+    leftBtn = null;
+    rightBtn = null;
+  }
 
   const updateDisabled = () => {
     const atStart = track.scrollLeft <= 1;
@@ -49,8 +58,10 @@ function initCarousels() {
     if (rightBtn) rightBtn.disabled = atEnd;
     // Ocultar botones cuando está en modo grid
     const isGrid = track.classList.contains('as-grid');
-  if (leftBtn) leftBtn.classList.toggle('hidden', isGrid);
-  if (rightBtn) rightBtn.classList.toggle('hidden', isGrid);
+    // Importante: no quitar la clase base 'hidden' (que oculta en móviles).
+    // En su lugar, ocultamos en md+ cuando está en grid usando 'md:hidden'.
+    if (leftBtn) leftBtn.classList.toggle('md:hidden', isGrid);
+    if (rightBtn) rightBtn.classList.toggle('md:hidden', isGrid);
   };
 
   const scrollToCard = (dir) => {
@@ -311,7 +322,11 @@ function setupCategoryLoader() {
       enhanceImages();
   // Por defecto: vista en grilla (2-4 columnas según ancho)
   const persistGrid = localStorage.getItem('viewMode') !== 'carousel';
-  container.querySelectorAll('.carousel.track').forEach((el) => el.classList.toggle('as-grid', persistGrid));
+  container.querySelectorAll('.carousel.track').forEach((el) => {
+    el.classList.toggle('as-grid', persistGrid);
+    // Forzar actualización de botones según modo
+    el.dispatchEvent(new Event('scroll'));
+  });
   setupViewToggle(container);
   setupFilter(container);
       container.setAttribute('aria-busy', 'false');
@@ -416,15 +431,31 @@ function setupViewToggle(container) {
     carBtn.classList.toggle('bg-gray-100', !grid);
   };
   gridBtn.addEventListener('click', () => {
-    tracks().forEach((el) => el.classList.add('as-grid'));
-  // actualizar estado de botones si existen
-  tracks().forEach((el) => el.dispatchEvent(new Event('scroll')));
+    tracks().forEach((el) => {
+      el.classList.add('as-grid');
+      // Eliminar botones de navegación si existen
+      el.parentElement.querySelectorAll('.carousel-btn').forEach((b) => b.remove());
+      // Desactivar snapping en grid (opcional si las clases CSS ya lo manejan)
+      el.style.scrollSnapType = 'none';
+      el.style.overflowX = 'visible';
+      // Forzar actualización de estados
+      el.dispatchEvent(new Event('scroll'));
+    });
     setActive(true);
     localStorage.setItem('viewMode', 'grid');
   });
   carBtn.addEventListener('click', () => {
-    tracks().forEach((el) => el.classList.remove('as-grid'));
-  tracks().forEach((el) => el.dispatchEvent(new Event('scroll')));
+    tracks().forEach((el) => {
+      el.classList.remove('as-grid');
+      // Crear botones si no existen (llamando a initCarousels para este track)
+      // initCarousels se ocupa de crearlos; aquí forzamos update vía evento
+      el.dispatchEvent(new Event('scroll'));
+      // Reactivar comportamiento de carrusel
+      el.style.scrollSnapType = '';
+      el.style.overflowX = '';
+    });
+    // Re-inicializar carouseles para asegurar botones tras cambiar a carrusel
+    initCarousels();
     setActive(false);
     localStorage.setItem('viewMode', 'carousel');
   });
