@@ -1,5 +1,5 @@
 // Ligero service worker para cachear shell y partials
-const CACHE = 'armijos-v4';
+const CACHE = 'armijos-v5';
 const CORE = [
   './index.html',
   './css/custom.css',

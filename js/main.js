@@ -507,7 +507,10 @@ function setupFilter(container) {
 const partialCache = new Map();
 async function getPartial(path) {
   if (partialCache.has(path)) return partialCache.get(path);
-  const res = await fetch(path, { cache: 'no-store' });
+  // Adjuntar versión del build para evitar caché (GitHub Pages + SW)
+  const ver = document.querySelector('meta[name="app-build"]')?.getAttribute('content') || Date.now().toString();
+  const url = path + (path.includes('?') ? '&' : '?') + 'v=' + encodeURIComponent(ver);
+  const res = await fetch(url, { cache: 'no-store' });
   const html = await res.text();
   partialCache.set(path, html);
   return html;
